@@ -1,0 +1,4 @@
+<Solution>
+  <Project Path="LdpaCalculator.test/LdpaCalculator.test.csproj" Id="9a35c8ee-cfc3-47c2-b94b-d1f6f7eed7b1" />
+  <Project Path="LogoCalculator/LogoCalculator.csproj" />
+</Solution>

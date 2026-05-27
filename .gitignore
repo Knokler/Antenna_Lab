@@ -1,0 +1,113 @@
+# =========================
+# Visual Studio / .NET
+# =========================
+
+.vs/
+*.user
+*.rsuser
+*.suo
+*.userosscache
+*.sln.docstates
+
+# Build results
+bin/
+obj/
+[Bb]uild/
+[Dd]ebug/
+[Rr]elease/
+x64/
+x86/
+[Aa][Rr][Mm]/
+[Aa][Rr][Mm]64/
+
+# Rider / JetBrains
+.idea/
+*.sln.iml
+
+# VS Code
+.vscode/
+
+# =========================
+# .NET test results
+# =========================
+
+TestResults/
+*.trx
+*.coverage
+*.coveragexml
+coverage/
+coverage.cobertura.xml
+coverage.opencover.xml
+
+# =========================
+# NuGet
+# =========================
+
+*.nupkg
+*.snupkg
+packages/
+project.assets.json
+*.nuget.props
+*.nuget.targets
+
+# Если используешь packages.config, эту строку можно убрать:
+# packages/
+
+# =========================
+# WPF generated files
+# =========================
+
+*.g.cs
+*.g.i.cs
+*.baml
+GeneratedInternalTypeHelper.g.cs
+
+# =========================
+# Logs
+# =========================
+
+*.log
+logs/
+
+# =========================
+# OS files
+# =========================
+
+.DS_Store
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# =========================
+# Temporary files
+# =========================
+
+*.tmp
+*.temp
+*.bak
+*.swp
+*.cache
+
+# =========================
+# Publish output
+# =========================
+
+publish/
+PublishProfiles/
+
+# =========================
+# Local database files
+# =========================
+
+*.db
+*.sqlite
+*.sqlite3
+*.db-shm
+*.db-wal
+
+# =========================
+# User local settings
+# =========================
+
+appsettings.Development.json
+local.settings.json
