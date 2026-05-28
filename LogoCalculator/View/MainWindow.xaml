@@ -1,10 +1,86 @@
 ﻿<Window x:Class="LogoCalculator.View.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:local="clr-namespace:LogoCalculator"
-        mc:Ignorable="d"
-        Title="Antenna 
-        LAB" Height="450" Width="800"/>
-    
+        Title="AntennaLab / LDPA Calculator"
+        Height="700"
+        Width="1100">
+
+    <Grid Margin="10">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="120"/>
+        </Grid.RowDefinitions>
+
+        <StackPanel Orientation="Horizontal" Margin="0,0,0,10">
+            <StackPanel Margin="0,0,10,0">
+                <TextBlock Text="Min MHz"/>
+                <TextBox Width="90"
+                         Text="{Binding MinFrequencyMHz, UpdateSourceTrigger=PropertyChanged}"/>
+            </StackPanel>
+
+            <StackPanel Margin="0,0,10,0">
+                <TextBlock Text="Max MHz"/>
+                <TextBox Width="90"
+                         Text="{Binding MaxFrequencyMHz, UpdateSourceTrigger=PropertyChanged}"/>
+            </StackPanel>
+
+            <StackPanel Margin="0,0,10,0">
+                <TextBlock Text="Elements"/>
+                <TextBox Width="90"
+                         Text="{Binding ElementCount, UpdateSourceTrigger=PropertyChanged}"/>
+            </StackPanel>
+
+            <StackPanel Margin="0,0,10,0">
+                <TextBlock Text="Tau"/>
+                <TextBox Width="90"
+                         Text="{Binding Tau, UpdateSourceTrigger=PropertyChanged}"/>
+            </StackPanel>
+
+            <StackPanel Margin="0,0,10,0">
+                <TextBlock Text="Sigma"/>
+                <TextBox Width="90"
+                         Text="{Binding Sigma, UpdateSourceTrigger=PropertyChanged}"/>
+            </StackPanel>
+
+            <StackPanel Margin="0,0,10,0">
+                <TextBlock Text="K"/>
+                <TextBox Width="90"
+                         Text="{Binding VelocityFactor, UpdateSourceTrigger=PropertyChanged}"/>
+            </StackPanel>
+
+            <Button Content="Рассчитать"
+                    Width="120"
+                    Height="32"
+                    VerticalAlignment="Bottom"
+                    Command="{Binding CalculateCommand}"/>
+        </StackPanel>
+
+        <TextBlock Grid.Row="1"
+                   Foreground="Red"
+                   Text="{Binding ErrorMessage}"
+                   Margin="0,0,0,10"/>
+
+        <DataGrid Grid.Row="2"
+                  ItemsSource="{Binding Elements}"
+                  AutoGenerateColumns="False">
+            <DataGrid.Columns>
+                <DataGridTextColumn Header="№" Binding="{Binding Index}"/>
+                <DataGridTextColumn Header="Freq MHz" Binding="{Binding FrequencyMHz, StringFormat=F2}"/>
+                <DataGridTextColumn Header="Full L mm" Binding="{Binding FullLengthMm, StringFormat=F2}"/>
+                <DataGridTextColumn Header="Arm mm" Binding="{Binding ArmLengthMm, StringFormat=F2}"/>
+                <DataGridTextColumn Header="Width mm" Binding="{Binding WidthMm, StringFormat=F2}"/>
+                <DataGridTextColumn Header="X mm" Binding="{Binding XCenterMm, StringFormat=F2}"/>
+                <DataGridTextColumn Header="Spacing mm" Binding="{Binding SpacingToNextMm, StringFormat=F2}"/>
+                <DataGridCheckBoxColumn Header="Phase Rev" Binding="{Binding IsPhaseReversed}"/>
+            </DataGrid.Columns>
+        </DataGrid>
+
+        <GroupBox Grid.Row="3"
+                  Header="Предупреждения"
+                  Margin="0,10,0,0">
+            <ListBox ItemsSource="{Binding Warnings}"/>
+        </GroupBox>
+    </Grid>
+</Window>
