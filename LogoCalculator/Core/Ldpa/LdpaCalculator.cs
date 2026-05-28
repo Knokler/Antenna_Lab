@@ -7,6 +7,33 @@
     public class LdpaCalculator
     {
         /// <summary>
+        /// Создание елементов
+        /// </summary>
+        /// <param name="input">Входные параметры</param>
+        /// <param name="firstElementLengthMm">Длина первого элемента в мм</param>
+        /// <returns></returns>
+        private static List<LdpaElement> CreateElements(LdpaInputParameters input,double firstElementLengthMm)
+        {
+            var elements = new List<LdpaElement>();
+
+            double xCenterMm = 0.0;
+
+            for (int i = 0; i < input.ElementCount; i++)
+            {
+                LdpaElement element = CreateElement(
+                    input,
+                    i,
+                    firstElementLengthMm,
+                    xCenterMm);
+
+                elements.Add(element);
+
+                xCenterMm += element.SpacingToNextMm;
+            }
+
+            return elements;
+        }
+        /// <summary>
         /// Создание элемента
         /// </summary>
         /// <param name="input"></param>
@@ -143,18 +170,14 @@
         { 
             ValidateInput(input);  // проверка входных параметров
 
-            var result = new LdpaResult(); //создать объект результата
+           
             double xCenterMm = 0.0; // TODO: расчет координаты центра элемента по оси X
             double firstElementLengthMm = CalculateFirstElementLengthMm(input); // посчитать первый элемент
-            
-            for (int i=0; i<input.ElementCount; i++) //создать остальные элементы на основе первого элемента и входных параметров
+
+            var result = new LdpaResult //создать список элементов и заполнить его
             {
-                LdpaElement element = CreateElement(input,i,firstElementLengthMm,xCenterMm);
-
-                result.Elements.Add(element);
-
-                xCenterMm += element.SpacingToNextMm; // обновляем координату центра для следующего элемента
-            }
+                Elements = CreateElements(input, firstElementLengthMm)
+            };
 
             FillResultSummary(input,result); // заполнить результат расчетов
 
