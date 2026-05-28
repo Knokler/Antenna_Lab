@@ -1,16 +1,91 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace LogoCalculator.Core.Ldpa
+﻿namespace LogoCalculator.Core.Ldpa
 {
+    
     /// <summary>
     /// Сервіс расчета классической Ldpa антенны.
     /// </summary>
     public class LdpaCalculator
     {
+        /// <summary>
+        /// Создание элемента
+        /// </summary>
+        /// <param name="input"></param>
+        /// <param name="elementIndex">номер элемента</param>
+        /// <param name="firstElementLengthMm">Длинна первого элемента</param>
+        /// <param name="xCenterMm">растояние между центрами элементов</param>
+        /// <returns></returns>
+        private static LdpaElement CreateElement(
+            LdpaInputParameters input,
+            int elementIndex,
+            double firstElementLengthMm,
+            double xCenterMm)
+                {
+                    double fullLengthMm = firstElementLengthMm * Math.Pow(input.Tau, elementIndex);
+                    double armLengthMm = fullLengthMm / 2.0;
+                    double frequencyMHz = CalculateFrequencyMHz(fullLengthMm, input.VelocityFactor);
+                    double spacingToNextMm = CalculateSpacingToNextMm(input.Sigma, fullLengthMm);
+                    double widthMm = CalculateElementWidthMm(input, fullLengthMm, elementIndex);
 
+                    return new LdpaElement
+                    {
+                        Index = elementIndex + 1,
+                        FullLengthMm = fullLengthMm,
+                        ArmLengthMm = armLengthMm,
+                        FrequencyMHz = frequencyMHz,
+                        SpacingToNextMm = spacingToNextMm,
+                        XCenterMm = xCenterMm,
+                        IsPhaseReversed = elementIndex % 2 == 1,
+                        WidthMm = widthMm
+                    };
+        }
+        /// <summary>
+        /// Заполнение результата расчетов АНТЕННЫ
+        /// </summary>
+        /// <param name="result"></param>
+        private static void FillResultSummary(LdpaInputParameters input,LdpaResult result)
+        {
+            result.LongestElementLengthMm = result.Elements.Max(element => element.FullLengthMm);
+            result.ShortestElementLengthMm = result.Elements.Min(element => element.FullLengthMm);
+            result.TotalWidthMm = result.LongestElementLengthMm;
+            result.TotalLengthMm = result.Elements[^1].XCenterMm;
+            result.AlphaDeg = CalculateAlphaDeg(input.Tau, input.Sigma);
+            result.ApexAngleDeg = result.AlphaDeg * 2.0;
 
+        }
+        /// <summary>
+        /// Расчет растояния между элементами
+        /// </summary>
+        /// <param name="sigma"></param>
+        /// <param name="fullLengthMm">Полная длина элемента в мм</param>
+        /// <returns>Растояние между элементами в мм</returns>
+        private static double CalculateSpacingToNextMm(double sigma, double fullLengthMm)
+        {
+            return 2.0 * sigma * fullLengthMm;
+        }
+        /// <summary>
+        /// Расчет частоты
+        /// </summary>
+        /// <param name="fullLengthMm">Полная длина элемента в мм</param>
+        /// <param name="velocityFactor">Коэфицент укорочение длины волны на матерьяле</param>
+        /// <returns>Частота в МГц </returns>
+        private static double CalculateFrequencyMHz(double fullLengthMm, double velocityFactor)
+        {
+            double frequencyHz =
+                SpeedOfLightMmPerSec * velocityFactor / (2.0 * fullLengthMm);
+
+            return frequencyHz / 1_000_000.0;
+        }
+        /// <summary>
+        /// Расчет первого элемента антенны
+        /// </summary>
+        /// <param name="input">Входные параметры</param>
+        /// <returns>Длина элемента в мм</returns>
+        private static double CalculateFirstElementLengthMm(LdpaInputParameters input)
+        {
+            double fMinHz = input.MinFrequencyMHz * 1_000_000.0;
+
+            return SpeedOfLightMmPerSec * input.VelocityFactor / (2.0 * fMinHz);
+        }
         /// <summary>
         /// Расчет угла раскрыва антенны в градусах на основе параметров tau и sigma.
         /// </summary>
@@ -58,26 +133,7 @@ namespace LogoCalculator.Core.Ldpa
         /// Скорость света в мм/с
         /// </summary>
         private const double SpeedOfLightMmPerSec = 299_792_458_000.0; // скорость света в мм/с
-
-        /*
-        public LdpaResult Calculate(LdpaInputParameters input)
-        {
-            ValidateInput(input);
-
-            var result = new LdpaResult();
-
-            for (int i = 0; i < input.ElementCount; i++)
-            {
-                result.Elements.Add(new LdpaElement
-                {
-                    Index = i + 1
-                });
-            }
-
-            return result;
-        }
-        */
-
+        
         /// <summary>
         /// Блок расчета классической Ldpa антенны на основе входных параметров.
         /// </summary>
@@ -85,54 +141,26 @@ namespace LogoCalculator.Core.Ldpa
         /// <returns></returns>
         public LdpaResult Calculate(LdpaInputParameters input)
         { 
-            ValidateInput(input);
+            ValidateInput(input);  // проверка входных параметров
 
-            var result = new LdpaResult();
-            
-            double fMinHz = input.MinFrequencyMHz * 1_000_000.0; // конвертация МГц в Гц
-
-            double firstElementLenghtMm = SpeedOfLightMmPerSec * input.VelocityFactor / (2.0 * fMinHz) ;
-
+            var result = new LdpaResult(); //создать объект результата
             double xCenterMm = 0.0; // TODO: расчет координаты центра элемента по оси X
+            double firstElementLengthMm = CalculateFirstElementLengthMm(input); // посчитать первый элемент
+            
+            for (int i=0; i<input.ElementCount; i++) //создать остальные элементы на основе первого элемента и входных параметров
+            {
+                LdpaElement element = CreateElement(input,i,firstElementLengthMm,xCenterMm);
 
-            for (int i=0; i<input.ElementCount; i++) 
-            { 
-                double fullLengthMm = firstElementLenghtMm * Math.Pow(input.Tau, i);
+                result.Elements.Add(element);
 
-                double armLengthMm = fullLengthMm / 2.0; // длина одного плеча вибратора в мм
-
-                double frequencyMHz = SpeedOfLightMmPerSec * input.VelocityFactor / (2.0 * fullLengthMm) / 1_000_000.0;
-
-                double spacingToNextMm = 2.0 * input.Sigma * fullLengthMm; // TODO: расчет расстояния до следующего элемента
-
-               double widthMm = CalculateElementWidthMm(input, fullLengthMm, i);
-
-
-                result.Elements.Add(new LdpaElement
-                {
-                    Index = i + 1,
-                    FullLengthMm = fullLengthMm,
-                    ArmLengthMm = armLengthMm,
-                    FrequencyMHz = frequencyMHz,
-                    SpacingToNextMm = spacingToNextMm,
-                    XCenterMm = xCenterMm,
-                    IsPhaseReversed = (i % 2 == 1), // чередование фазы для каждого элемента
-                    WidthMm = widthMm
-                });
-
-                xCenterMm += spacingToNextMm; // обновляем координату центра для следующего элемента
+                xCenterMm += element.SpacingToNextMm; // обновляем координату центра для следующего элемента
             }
 
-            result.LongestElementLengthMm = result.Elements.Max(e => e.FullLengthMm);
-            result.ShortestElementLengthMm = result.Elements.Min(e => e.FullLengthMm);
-            result.TotalWidthMm = result.LongestElementLengthMm;
-            result.TotalLengthMm = result.Elements[^1].XCenterMm;
-            result.AlphaDeg = CalculateAlphaDeg(input.Tau, input.Sigma);
-            result.ApexAngleDeg = 2.0 * result.AlphaDeg;
+            FillResultSummary(input,result); // заполнить результат расчетов
 
-            AddWarnings(input, result);
+            AddWarnings(input, result); //добавить предупреждения
 
-            return result;
+            return result; // вернуть результат
         }
         /// <summary>
         /// Метод проверки коректностии ввода параметров
@@ -145,14 +173,11 @@ namespace LogoCalculator.Core.Ldpa
             if (input.MinFrequencyMHz <=0)
                 throw new ArgumentException("Минимальная частота должна быть больше нуля.");
             
-            if (input.MaxFrequencyMHz < input.MinFrequencyMHz)
+            if (input.MaxFrequencyMHz <= input.MinFrequencyMHz)
                 throw new ArgumentException("Максимальная частота не должна быть меньще митнимальной");
 
             if (input.ElementCount < 2)
                 throw new ArgumentException("Количество элементов должнобыть не меньше 2");
-
-            if (input.Tau <= 0)
-                throw new ArgumentException("Tau должен быть в диапозоне от 0 < Tau < 1 ");
 
             if (input.Sigma <= 0)
                 throw new ArgumentException("Sigma должен быть больше 0");
@@ -186,19 +211,7 @@ namespace LogoCalculator.Core.Ldpa
                 result.Warnings.Add("Геометричный угол раскрыва слишком большой. Возможны ухудшения направлености и согласования.");
             }
         }
-        /*
-        public LdpaResult Calculate(LdpaInputParameters input)
-        {
-            ValidateInput(input);
-            var result = new LdpaResult();
-            
-            
-            
-            
-            
-            return  result;
-        }
-        */
+        
 
     }
 }
