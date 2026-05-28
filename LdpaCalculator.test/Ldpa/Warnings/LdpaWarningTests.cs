@@ -6,6 +6,66 @@ namespace LdpaCalculator.test.Ldpa.Warnings
     public class LdpaWarningTests
     {
         [Fact]
+        public void Calculate_WhenApexAngleIsAcceptable_ShouldNotAddLargeApexAngleWarning()
+        {
+            // Тест если угол нормальный то варнинг не нужен
+            // Arrange
+            var calculator = new LdpaCalc();
+
+            var input = new LdpaInputParameters
+            {
+                MinFrequencyMHz = 1000,
+                MaxFrequencyMHz = 6000,
+                ElementCount = 16,
+
+                // Более спокойная геометрия
+                Tau = 0.90,
+                Sigma = 0.07,
+
+                VelocityFactor = 0.95,
+                MinElementWidthMm = 1.0,
+                MaxElementWidthMm = 30.0
+            };
+
+            // Act
+            LdpaResult result = calculator.Calculate(input);
+
+            // Assert
+            Assert.True(result.ApexAngleDeg <= 60.0);
+
+            Assert.DoesNotContain(
+                result.Warnings,
+                warning => warning.Contains("угол раскрыва"));
+        }
+        [Fact]
+        public void Calculate_WhenApexAngelsIsTooLarge_ShouldAddWarning()
+        {
+            //Тест 28: если угол раскрыва слишком большой — должен быть warning
+            //Arrange
+            var calculator = new LdpaCalc();
+            var input = new LdpaInputParameters
+            {
+                MinFrequencyMHz = 1000,
+                MaxFrequencyMHz = 6000,
+                ElementCount = 16,
+                //маленький тау и маленький угол раскрыва
+                Tau = 0.6,
+                Sigma = 0.04,
+
+                VelocityFactor = 0.95,
+                MinElementWidthMm = 1.0,
+                MaxElementWidthMm = 30.0
+            };
+            //Act
+            LdpaResult result = calculator.Calculate(input);
+
+            //Assert
+            Assert.Contains(
+                result.Warnings,
+                warning => warning.Contains("угол раскрыва"));
+        }
+
+        [Fact]
         public void Calculate_WhenShortestElementIsLargeEnoughComparedToMinWidth_ShouldNotAddShortElementWarning()
         {
             // Arrange
